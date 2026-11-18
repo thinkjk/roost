@@ -31,6 +31,8 @@ services:
       - TOOLS=${TOOLS:-herdr uv gh glab npm:ccusage npm:playwright npm:@playwright/mcp}
       - CURSOR=${CURSOR:-0}
       - TRUST_PROJECTS=${TRUST_PROJECTS:-1}
+      # 1 = `mise up` all tools (Claude Code, Codex, ...) on every start.
+      - AUTO_UPDATE=${AUTO_UPDATE:-0}
       # Heeler QR pairing (roost-pair): off by default, see docs/reference.md.
       - HEELER_PAIRING=${HEELER_PAIRING:-0}
       - HEELER_ADDRESSES=${HEELER_ADDRESSES:-}

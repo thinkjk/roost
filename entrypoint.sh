@@ -14,6 +14,10 @@ CURSOR="${CURSOR:-0}"
 # pre-accepted for ~/projects/*. Set TRUST_PROJECTS=0 to keep the dialog.
 TRUST_PROJECTS="${TRUST_PROJECTS:-1}"
 GH_TOKEN="${GH_TOKEN:-}"
+# AUTO_UPDATE=1: `mise up` every installed tool (Claude Code, Codex, herdr,
+# ...) on each start, and leave updates to mise alone (Claude Code's own
+# auto-updater is switched off). Updating live, without a restart: `mise up`.
+AUTO_UPDATE="${AUTO_UPDATE:-0}"
 # Heeler QR pairing (roost-pair). Off by default: it lets ~/.ssh/authorized_keys
 # grant logins, which every agent in the box can write.
 HEELER_PAIRING="${HEELER_PAIRING:-0}"
@@ -99,6 +103,15 @@ bootstrap() {
       || run "$MISE" use -g "$name@latest" 2>/dev/null \
       || echo "WARN: could not install $t"
   done
+
+  if [ "$AUTO_UPDATE" = "1" ]; then
+    run "$MISE" up && echo "roost: tools updated (AUTO_UPDATE)" \
+      || echo "WARN: mise up failed"
+    # Two updaters for one binary fight; mise owns it here.
+    run bash -c 's="$HOME/.claude/settings.json"; [ -s "$s" ] || echo "{}" > "$s"
+      jq ".env.DISABLE_AUTOUPDATER = \"1\"" "$s" > "$s.tmp" && mv "$s.tmp" "$s"' \
+      || echo "WARN: could not switch off Claude Code's auto-updater"
+  fi
 
   run bash -c 'ls "$HOME"/.cache/ms-playwright/chromium-* >/dev/null 2>&1 || playwright install chromium' \
     || echo "WARN: chromium download failed"

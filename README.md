@@ -110,6 +110,8 @@ live, inside the box, without a restart:
 mise up            # everything, or e.g. `mise up claude`
 ```
 
+Or set `AUTO_UPDATE=1` in `.env` to run that on every container start.
+
 ## Docs
 
 - [reference](docs/reference.md): migrate, `~/projects` and trust, herdr

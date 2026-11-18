@@ -97,6 +97,15 @@ because sshd ignores `authorized_keys` under a group- or world-writable home.
 ## Security model
 
 - No sudo, no Docker socket in the container.
+- Root runs only the entrypoint and sshd. The entrypoint calls every root-side
+  binary by absolute path and never puts the agent-writable `~/.local/bin` or
+  mise shims on root's `PATH`, so nothing an agent drops in its home runs as
+  root on the next start.
+- The container keeps only the capabilities the entrypoint and sshd need
+  (`cap_drop: ALL` plus a short `cap_add` list in `compose.yml`) and runs
+  with `no-new-privileges`, so no setuid binary can raise an agent's
+  privileges. If you run the container from your own compose file, copy
+  those lines.
 - The SSH host key and `authorized_keys` live in a root-owned volume outside
   the agent-writable home, and `PUBLIC_KEYS` is written to a root-owned file
   in `/run`, so agents cannot change the login set. The host key is generated

@@ -5,8 +5,11 @@
 # Code popup in the running herdr. Needs HEELER_PAIRING=1 on the container.
 set -euo pipefail
 # addresses in pair.json is not upstream yet (ZingerLittleBee/Heeler#489).
+# Pinned to a commit, not the branch: whoever can push to the branch would
+# otherwise decide what code runs in the box. To bump, take the head of
+# feat/pair-json-addresses (or upstream once #489 lands) after reviewing it.
 PLUGIN="${HEELER_PLUGIN:-aronjanosch/Heeler/plugin}"
-REF="${HEELER_PLUGIN_REF:-feat/pair-json-addresses}"
+REF="${HEELER_PLUGIN_REF:-8c3b81fb413c4437df71a24d5f0a3f57855d1bb0}"
 cfg=/run/roost/heeler-pair.json
 
 if [ ! -f "$cfg" ]; then

@@ -17,7 +17,7 @@
   <WebUI/>
   <TemplateURL>https://raw.githubusercontent.com/aronjanosch/roost/main/templates/roost.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/aronjanosch/roost/main/assets/icon.png</Icon>
-  <ExtraParams>--init --shm-size=1g --memory=6g --pids-limit=2048</ExtraParams>
+  <ExtraParams>--init --shm-size=1g --memory=6g --pids-limit=2048 --cap-drop=ALL --cap-add=CHOWN --cap-add=DAC_OVERRIDE --cap-add=FOWNER --cap-add=SETUID --cap-add=SETGID --cap-add=SYS_CHROOT --cap-add=NET_BIND_SERVICE --cap-add=KILL --cap-add=AUDIT_WRITE --security-opt=no-new-privileges:true</ExtraParams>
   <PostArgs/>
   <Config Name="SSH port" Target="22" Default="2222" Mode="tcp" Description="Port your devices connect to (ssh -p 2222 agent@unraid). Keep it on LAN/VPN." Type="Port" Display="always" Required="true" Mask="false">2222</Config>
   <Config Name="Public keys" Target="PUBLIC_KEYS" Default="" Mode="" Description="SSH public keys allowed to log in as agent, comma-separated (laptop, phone, ...)." Type="Variable" Display="always" Required="true" Mask="false"/>

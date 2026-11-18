@@ -16,11 +16,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && mkdir -p /run/sshd \
     && rm -rf /var/lib/apt/lists/*
 
-# Unpinned on purpose; tools themselves are updated inside with `mise up`.
+# Pinned and checksum-verified: a compromised download host cannot swap the
+# binary that installs everything else. Tools themselves are still updated
+# inside with `mise up`. To bump: take the version and the two linux sums
+# from SHASUMS256.txt of https://github.com/jdx/mise/releases.
 # TARGETARCH is set by buildx (amd64 / arm64); mise names them x64 / arm64.
 ARG TARGETARCH
-RUN arch="$([ "$TARGETARCH" = arm64 ] && echo arm64 || echo x64)" \
-    && curl -fsSL "https://mise.jdx.dev/mise-latest-linux-$arch" -o /usr/local/bin/mise \
+ARG MISE_VERSION=2026.11.9
+ARG MISE_SHA256_X64=f13f3e5ec88807e0161669b3aa07a91d84478cdf1e95b5b92b63f85a25d42395
+ARG MISE_SHA256_ARM64=b8dd05af6447cee933928664982a8cb2fa646e6951cfc8539db23ce2554a7b04
+RUN if [ "$TARGETARCH" = arm64 ]; then arch=arm64 sum="$MISE_SHA256_ARM64"; \
+    else arch=x64 sum="$MISE_SHA256_X64"; fi \
+    && curl -fsSL "https://github.com/jdx/mise/releases/download/v$MISE_VERSION/mise-v$MISE_VERSION-linux-$arch" \
+         -o /usr/local/bin/mise \
+    && echo "$sum  /usr/local/bin/mise" | sha256sum -c - \
     && chmod +x /usr/local/bin/mise
 
 # Throwaway node (Ubuntu's is too old for playwright) just for the system libs.

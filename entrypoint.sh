@@ -20,6 +20,11 @@ HEELER_PAIRING="${HEELER_PAIRING:-0}"
 
 AGENT_USER=agent
 AGENT_HOME=/home/agent
+# Absolute paths for everything root runs: root never searches a PATH that
+# the agent can write to (a planted ~/.local/bin/gosu would otherwise run as
+# root on the next start).
+GOSU=/usr/sbin/gosu
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # ---------------------------------------------------------------------------
 # 1. Remap uid/gid and (re)own the home volume. Edits /etc/passwd directly:
@@ -37,7 +42,7 @@ if [ "$(stat -c %u:%g "$AGENT_HOME")" != "$PUID:$PGID" ]; then
   echo "roost: owning $AGENT_HOME as $PUID:$PGID (one-time, may take a while)"
   chown -R "$PUID:$PGID" "$AGENT_HOME" 2>/dev/null || true
 fi
-as_agent() { gosu "$AGENT_USER" env HOME="$AGENT_HOME" "$@"; }
+as_agent() { "$GOSU" "$AGENT_USER" env HOME="$AGENT_HOME" "$@"; }
 
 # ---------------------------------------------------------------------------
 # 2. Seed an empty home from /etc/skel once, and make the standard dirs.
@@ -63,7 +68,7 @@ done
 # ---------------------------------------------------------------------------
 # 3. Git identity (as the agent user).
 # ---------------------------------------------------------------------------
-git_cfg() { gosu "$AGENT_USER" git config --global "$@"; }
+git_cfg() { "$GOSU" "$AGENT_USER" git config --global "$@"; }
 if [ -n "${GIT_USER_NAME:-}" ]; then  git_cfg user.name "$GIT_USER_NAME"; fi
 if [ -n "${GIT_USER_EMAIL:-}" ]; then git_cfg user.email "$GIT_USER_EMAIL"; fi
 git_cfg init.defaultBranch main
@@ -74,10 +79,11 @@ git_cfg pull.rebase true
 #    Logins (claude / codex / opencode / gh / glab) stay manual.
 # ---------------------------------------------------------------------------
 bootstrap() {
-  export HOME="$AGENT_HOME"
-  export PATH="$AGENT_HOME/.local/share/mise/shims:$AGENT_HOME/.local/bin:/usr/local/bin:$PATH"
+  # The agent-first PATH exists only inside the agent's processes, never in
+  # this root shell.
+  local agent_path="$AGENT_HOME/.local/share/mise/shims:$AGENT_HOME/.local/bin:$PATH"
   MISE=/usr/local/bin/mise
-  run() { gosu "$AGENT_USER" env HOME="$AGENT_HOME" PATH="$PATH" "$@"; }
+  run() { "$GOSU" "$AGENT_USER" env HOME="$AGENT_HOME" PATH="$agent_path" "$@"; }
 
   # node first: the npm: / npx tools need it.
   extra=""
@@ -110,7 +116,7 @@ bootstrap() {
   # No claude CLI here: `claude mcp add` hangs before the first login.
   # --no-sandbox because the container has no user namespaces for Chromium's sandbox.
   f="$AGENT_HOME/.claude.json"
-  [ -f "$f" ] || { [ "$PUID" = "0" ] && echo '{}' > "$f" || gosu "$AGENT_USER" bash -c 'echo "{}" > "$HOME/.claude.json"'; }
+  [ -f "$f" ] || { [ "$PUID" = "0" ] && echo '{}' > "$f" || run bash -c 'echo "{}" > "$HOME/.claude.json"'; }
   run bash -c "jq -S '.mcpServers.playwright = {\"type\":\"stdio\",\"command\":\"playwright-mcp\",\"args\":[\"--headless\",\"--browser\",\"chromium\",\"--no-sandbox\"],\"env\":{}}' '$f' > '$f.tmp' && mv '$f.tmp' '$f'" \
     || echo "WARN: playwright MCP config failed"
 
@@ -168,4 +174,4 @@ if [ "$HEELER_PAIRING" = "1" ]; then
 fi
 [ -s "$key" ] && /usr/sbin/sshd -D -e -f "$sshd_config" &
 
-exec gosu "$AGENT_USER" sleep infinity
+exec "$GOSU" "$AGENT_USER" sleep infinity

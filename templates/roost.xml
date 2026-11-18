@@ -1,22 +1,22 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>roost</Name>
-  <Repository>ghcr.io/aronjanosch/roost:latest</Repository>
-  <Registry>https://github.com/aronjanosch/roost/pkgs/container/roost</Registry>
+  <Repository>ghcr.io/thinkjk/roost:latest</Repository>
+  <Registry>https://github.com/thinkjk/roost/pkgs/container/roost</Registry>
   <Network>bridge</Network>
   <Shell>bash</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/aronjanosch/roost/issues</Support>
-  <Project>https://github.com/aronjanosch/roost</Project>
+  <Support>https://github.com/thinkjk/roost/issues</Support>
+  <Project>https://github.com/thinkjk/roost</Project>
   <Overview>A home for your remote coding agents, built for herdr. Claude Code, Codex, opencode and friends run in this container and you drive them over SSH with herdr (herdr.dev): close the laptop and they keep working; reattach from another machine or your phone. Pubkey-only SSH as user agent, no sudo, no Docker socket. Paste your public key(s) into Public keys (comma-separated), then connect: ssh -p 2222 agent@[unraid-ip]. First start installs the tools (a few minutes, see the log).</Overview>
-  <ReadMe>https://raw.githubusercontent.com/aronjanosch/roost/main/README.md</ReadMe>
+  <ReadMe>https://raw.githubusercontent.com/thinkjk/roost/main/README.md</ReadMe>
   <Category>Productivity: Tools:System</Category>
   <ExtraSearchTerms>claude codex opencode herdr ai agent coding ssh dev box</ExtraSearchTerms>
   <Requires>An SSH key pair on the device you connect from. Internet access on first start (tools install into the home folder, a few minutes).</Requires>
   <License>MIT</License>
   <WebUI/>
-  <TemplateURL>https://raw.githubusercontent.com/aronjanosch/roost/main/templates/roost.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/aronjanosch/roost/main/assets/icon.png</Icon>
+  <TemplateURL>https://raw.githubusercontent.com/thinkjk/roost/main/templates/roost.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/thinkjk/roost/main/assets/icon.png</Icon>
   <ExtraParams>--init --shm-size=1g --memory=6g --pids-limit=2048 --cap-drop=ALL --cap-add=CHOWN --cap-add=DAC_OVERRIDE --cap-add=FOWNER --cap-add=SETUID --cap-add=SETGID --cap-add=SYS_CHROOT --cap-add=NET_BIND_SERVICE --cap-add=KILL --cap-add=AUDIT_WRITE --security-opt=no-new-privileges:true</ExtraParams>
   <PostArgs/>
   <Config Name="SSH port" Target="22" Default="2222" Mode="tcp" Description="Port your devices connect to (ssh -p 2222 agent@unraid). Keep it on LAN/VPN." Type="Port" Display="always" Required="true" Mask="false">2222</Config>
@@ -33,6 +33,6 @@
   <Config Name="Git user.email" Target="GIT_USER_EMAIL" Default="" Mode="" Description="Git identity for commits made in the box." Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="GitHub token" Target="GH_TOKEN" Default="" Mode="" Description="Optional. Logs gh in on start and lets git use it for HTTPS. Fine-grained, only the repos you need." Type="Variable" Display="always" Required="false" Mask="true"/>
   <Config Name="Harnesses" Target="HARNESSES" Default="claude codex opencode" Mode="" Description="Coding agents to install (mise ids, space-separated)." Type="Variable" Display="advanced" Required="false" Mask="false">claude codex opencode</Config>
-  <Config Name="Auto-update tools" Target="AUTO_UPDATE" Default="0" Mode="" Description="1 = update Claude Code, Codex and the other tools (mise up) on every start. Without it: run mise up in the box." Type="Variable" Display="advanced" Required="false" Mask="false">0</Config>
+  <Config Name="Auto-update tools" Target="AUTO_UPDATE" Default="1" Mode="" Description="1 = update Claude Code, Codex and the other tools (mise up) on every start. Without it: run mise up in the box." Type="Variable" Display="advanced" Required="false" Mask="false">1</Config>
   <Config Name="Tools" Target="TOOLS" Default="herdr uv gh glab npm:ccusage npm:playwright npm:@playwright/mcp" Mode="" Description="Extra tools (mise specs). herdr is required." Type="Variable" Display="advanced" Required="false" Mask="false">herdr uv gh glab npm:ccusage npm:playwright npm:@playwright/mcp</Config>
 </Container>

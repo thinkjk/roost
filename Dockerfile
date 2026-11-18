@@ -47,11 +47,11 @@ RUN (userdel -r ubuntu 2>/dev/null; groupdel ubuntu 2>/dev/null; true) \
 COPY agent-instructions.md /etc/roost/AGENTS.md
 COPY skills /etc/roost/skills
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY roost-trust roost-pair /usr/local/bin/
+COPY roost-trust roost-pair roost-busy /usr/local/bin/
 COPY sshd_config /etc/roost/sshd_config
 
 # PATH for login shells (docker exec bash -l) + aliases for interactive ones.
-RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/roost-trust /usr/local/bin/roost-pair \
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/roost-trust /usr/local/bin/roost-pair /usr/local/bin/roost-busy \
     && echo 'export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"' > /etc/profile.d/roost.sh \
     && printf '%s\n' \
       "eval \"\$(/usr/local/bin/mise activate bash)\"" \
@@ -60,6 +60,11 @@ RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/roost-trust /usr/local/
       "alias cx='claude --dangerously-skip-permissions'" \
       "alias cy='codex --approve-for-me'" \
       "alias cz='opencode --dangerously-skip-permissions'" >> /etc/bash.bashrc
+
+# Watchtower (with WATCHTOWER_LIFECYCLE_HOOKS=true) asks roost-busy before
+# updating: while an agent runs it exits 75 and the update waits for the next
+# check. Watchtower without hooks enabled ignores this label.
+LABEL com.centurylinklabs.watchtower.lifecycle.pre-update="/usr/local/bin/roost-busy"
 
 # Main process starts as root so entrypoint.sh can remap uid/gid, then drops.
 WORKDIR /home/agent

@@ -24,9 +24,13 @@ Nothing in the image needs hand-bumping:
 | CI actions | Dependabot PRs (commit-pinned, weekly) |
 | Claude Code, Codex, herdr, ... | not in the image: `AUTO_UPDATE=1` runs `mise up` in the box at start and daily |
 
-Each published image is a new digest, so Watchtower (or similar) recreates
-the container about weekly, which stops running agent sessions. Schedule it
-for a quiet hour.
+Each published image is a new digest, so Watchtower recreates the container
+about weekly. The image carries a Watchtower pre-update hook, `roost-busy`:
+while any coding agent runs (even idle at its prompt) or `~/.roost-hold`
+exists, it exits 75 and Watchtower skips roost until its next check. This
+needs `WATCHTOWER_LIFECYCLE_HOOKS=true` on the Watchtower container; without
+it the label is ignored and updates roll whenever Watchtower runs. Run
+`roost-busy` in the box to see what would block an update.
 
 If mise ever rotates its signing key, `update-mise` fails loudly; replace
 `.github/scripts/mise.pub` with the new `minisign.pub` from github.com/jdx/mise
@@ -44,10 +48,13 @@ roost/
 ├── entrypoint.sh        uid/gid remap, home seed, tool bootstrap, sshd
 ├── roost-trust          in the image: pre-accept Claude trust for ~/projects/*
 ├── roost-pair           in the image: Heeler QR pairing (HEELER_PAIRING=1)
+├── roost-busy           in the image: Watchtower pre-update hook (defers updates while agents run)
 ├── sshd_config          the box's sshd (pubkey-only, user agent)
 ├── agent-instructions.md  global AGENTS.md/CLAUDE.md for agents in the box
 ├── docs/                reference, tools, harnesses, maintainers
-├── skills/roost-setup/  guided setup skill, installed for every agent in the box
+├── skills/             installed for every agent in the box on each start:
+│   ├── roost-setup/     guided setup
+│   └── veo/             Veo video generation via the LiteLLM gateway (veo.sh)
 ├── assets/             logo (light/dark), icon.png (Unraid), og-card.png (social preview)
 │   └── demo/           README GIF: record.sh + roost.tape (VHS)
 ├── templates/roost.xml  Unraid Community Apps template (+ ca_profile.xml)

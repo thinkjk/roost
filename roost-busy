@@ -7,7 +7,8 @@
 # itself breaks, the box stays up rather than being rolled mid-task.
 #
 # Busy means: a coding agent is running (even idle at its prompt; a recreate
-# would kill it), or someone ran `touch ~/.roost-hold` to hold updates by hand
+# would kill it; except Claude that herdr reports idle, which AUTO_AGENT
+# resumes with --continue after the update), or someone ran `touch ~/.roost-hold` to hold updates by hand
 # (`rm ~/.roost-hold` to release). Run it yourself to see what would block.
 set -u
 
@@ -16,6 +17,23 @@ set -u
 # `less claude` or `vim claude.md` is not a hit.
 AGENTS="claude codex opencode cursor-agent gemini copilot aider amp qwen crush goose grok pi omp"
 HOLD=/home/agent/.roost-hold
+
+HC=/home/agent/.local/bin/hc
+
+# claude_idle /proc/PID: true only when herdr-core reports that process's
+# terminal as idle. Anything unclear (not in a herdr terminal, hc missing or
+# failing, another status) counts as busy.
+claude_idle() {
+  local t state
+  t="$(tr '\0' '\n' < "$1/environ" 2>/dev/null | sed -n 's/^HC_TERMINAL_ID=//p' | head -n1)"
+  [ -n "$t" ] && [ -x "$HC" ] || return 1
+  if [ "$(id -u)" = 0 ]; then
+    state="$(/usr/sbin/gosu agent env HOME=/home/agent "$HC" get "$t" --json 2>/dev/null | jq -r '.status.state // empty' 2>/dev/null)"
+  else
+    state="$("$HC" get "$t" --json 2>/dev/null | jq -r '.status.state // empty' 2>/dev/null)"
+  fi
+  [ "$state" = idle ]
+}
 
 busy=()
 [ -e "$HOLD" ] && busy+=("hold file $HOLD")
@@ -29,7 +47,12 @@ for d in /proc/[0-9]*; do
   for arg in "${args[@]}"; do
     name="${arg##*/}"
     for a in $AGENTS; do
-      if [ "$name" = "$a" ]; then busy+=("$a (pid ${d#/proc/})"); break 2; fi
+      if [ "$name" = "$a" ]; then
+        # Claude idle at its prompt in a herdr terminal does not block:
+        # AUTO_AGENT brings it back with --continue after the update.
+        [ "$a" = claude ] && claude_idle "$d" && break 2
+        busy+=("$a (pid ${d#/proc/})"); break 2
+      fi
     done
   done
 done

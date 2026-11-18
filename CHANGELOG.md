@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- `AUTO_AGENT`: every herdr terminal that opens in a git repo under
+  `~/projects` starts the agent (default `claude
+  --dangerously-skip-permissions`; empty = off; `.no-auto-agent` skips a
+  repo). Terminals herdr-core brings back after a restart continue their
+  conversation (`--continue` on the same command).
+- `roost-busy` no longer defers updates for a Claude that herdr reports idle;
+  `AUTO_AGENT` resumes it after the recreate. Working Claudes and other
+  agents still defer.
 - Heeler QR pairing: `HEELER_PAIRING=1` plus `HEELER_ADDRESSES`, then
   `roost-pair` in the box shows a Pairing Code to scan. Off by default; when
   on, `~/.ssh/authorized_keys` grants logins too. The plugin comes from a fork

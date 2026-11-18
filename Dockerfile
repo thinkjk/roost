@@ -49,6 +49,7 @@ COPY skills /etc/roost/skills
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY roost-trust roost-pair roost-busy /usr/local/bin/
 COPY sshd_config /etc/roost/sshd_config
+COPY auto-agent.bash /etc/roost/auto-agent.bash
 
 # PATH for login shells (docker exec bash -l) + aliases for interactive ones.
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/roost-trust /usr/local/bin/roost-pair /usr/local/bin/roost-busy \
@@ -59,7 +60,8 @@ RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/roost-trust /usr/local/
       "alias c='opencode'" \
       "alias cx='claude --dangerously-skip-permissions'" \
       "alias cy='codex --approve-for-me'" \
-      "alias cz='opencode --dangerously-skip-permissions'" >> /etc/bash.bashrc
+      "alias cz='opencode --dangerously-skip-permissions'" \
+      ". /etc/roost/auto-agent.bash" >> /etc/bash.bashrc
 
 # Watchtower (with WATCHTOWER_LIFECYCLE_HOOKS=true) asks roost-busy before
 # updating: while an agent runs it exits 75 and the update waits for the next

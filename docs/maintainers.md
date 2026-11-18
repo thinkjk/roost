@@ -26,8 +26,9 @@ Nothing in the image needs hand-bumping:
 
 Each published image is a new digest, so Watchtower recreates the container
 about weekly. The image carries a Watchtower pre-update hook, `roost-busy`:
-while any coding agent runs (even idle at its prompt) or `~/.roost-hold`
-exists, it exits 75 and Watchtower skips roost until its next check. This
+while any coding agent runs (even idle at its prompt; except a Claude that
+herdr reports idle, which `AUTO_AGENT` resumes after the recreate) or
+`~/.roost-hold` exists, it exits 75 and Watchtower skips roost until its next check. This
 needs `WATCHTOWER_LIFECYCLE_HOOKS=true` on the Watchtower container; without
 it the label is ignored and updates roll whenever Watchtower runs. Run
 `roost-busy` in the box to see what would block an update.
@@ -49,6 +50,7 @@ roost/
 ├── roost-trust          in the image: pre-accept Claude trust for ~/projects/*
 ├── roost-pair           in the image: Heeler QR pairing (HEELER_PAIRING=1)
 ├── roost-busy           in the image: Watchtower pre-update hook (defers updates while agents run)
+├── auto-agent.bash      in the image: starts AUTO_AGENT in herdr terminals opened in a repo
 ├── sshd_config          the box's sshd (pubkey-only, user agent)
 ├── agent-instructions.md  global AGENTS.md/CLAUDE.md for agents in the box
 ├── docs/                reference, tools, harnesses, maintainers

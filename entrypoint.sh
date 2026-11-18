@@ -21,6 +21,12 @@ AUTO_UPDATE="${AUTO_UPDATE:-0}"
 # Heeler QR pairing (roost-pair). Off by default: it lets ~/.ssh/authorized_keys
 # grant logins, which every agent in the box can write.
 HEELER_PAIRING="${HEELER_PAIRING:-0}"
+# Agent started in every herdr terminal that opens in a git repo under
+# ~/projects (see /etc/roost/auto-agent.bash). Unset: Claude without
+# permission prompts, if Claude is installed. Set but empty: off.
+if [ -z "${AUTO_AGENT+x}" ]; then
+  case " $HARNESSES " in *" claude "*) AUTO_AGENT="claude --dangerously-skip-permissions";; *) AUTO_AGENT="";; esac
+fi
 
 AGENT_USER=agent
 AGENT_HOME=/home/agent
@@ -186,6 +192,9 @@ if [ ! -s "$key" ]; then
     || echo "WARN: cannot write $SSH_DIR (read-only mount?) — no host key, sshd not started"
 fi
 install -d -o root -g root -m 0755 /run/roost
+# Root-owned so agents in the box cannot change what new terminals run.
+printf '%s\n' "$AUTO_AGENT" > /run/roost/auto-agent
+chmod 0644 /run/roost/auto-agent
 # Separated by newlines or commas (single-line UIs such as Unraid templates).
 printf '%s\n' "${PUBLIC_KEYS:-}" | tr ',' '\n' | sed 's/^[[:space:]]*//' | grep -E '^(ssh-|ecdsa-|sk-)' > /run/roost/authorized_keys
 chmod 0644 /run/roost/authorized_keys

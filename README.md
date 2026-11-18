@@ -114,8 +114,14 @@ Or set `AUTO_UPDATE=1` in `.env` to run that on every container start and
 daily while it runs.
 
 Using Watchtower? Give it `WATCHTOWER_LIFECYCLE_HOOKS=true`: roost then
-defers each update until no coding agent is running (`roost-busy` in the
+defers each update until no coding agent is working (`roost-busy` in the
 box shows what would block it; `touch ~/.roost-hold` holds updates by hand).
+
+**Claude starts by itself:** a herdr terminal that opens in a git repo under
+`~/projects` runs `AUTO_AGENT` (default `claude
+--dangerously-skip-permissions`), and after a restart it continues the same
+conversation with `--continue`. Set `AUTO_AGENT` empty to switch it off, or
+`touch .no-auto-agent` in a repo to skip that one.
 
 ## Docs
 

@@ -31,6 +31,9 @@ services:
       - TOOLS=${TOOLS:-herdr uv gh glab npm:ccusage npm:playwright npm:@playwright/mcp}
       - CURSOR=${CURSOR:-0}
       - TRUST_PROJECTS=${TRUST_PROJECTS:-1}
+      # Agent started in each herdr terminal opened in a repo under ~/projects.
+      # Not set: claude --dangerously-skip-permissions. Set empty: off.
+      - AUTO_AGENT
       # Claude Code through a gateway such as LiteLLM (written into Claude's
       # settings on start). Empty: log in with /login instead.
       - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-}

@@ -41,6 +41,14 @@ services:
       # SSH host key (generated on first start) and extra authorized_keys.
       # Root-owned and outside the agent's home: agents cannot add logins.
       - ${ROOST_SSH:-/srv/roost-ssh}:/etc/roost/ssh
+    # Only the capabilities the entrypoint (uid remap, chown, gosu) and sshd
+    # (privilege drop, chroot, port 22) need; Docker's other defaults (raw
+    # sockets, mknod, setfcap, ...) are dropped. no-new-privileges stops
+    # setuid binaries from ever raising an agent's privileges.
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETUID, SETGID, SYS_CHROOT, NET_BIND_SERVICE, KILL, AUDIT_WRITE]
+    security_opt:
+      - no-new-privileges:true
     # Chromium/Electron crash with SIGBUS on the default 64 MB.
     shm_size: "1gb"
     # Keep a runaway agent from starving the rest of the host.

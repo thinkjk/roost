@@ -102,7 +102,13 @@ roost/bin/roost-migrate roost        # your ssh alias for the box; asks per grou
 docker compose pull && docker compose up -d   # logins, repos and tools stay
 ```
 
-Running agent sessions stop during the recreate.
+Running agent sessions stop during the recreate. A new image does not update
+the tools in the home volume (Claude Code, Codex, herdr, ...). Update those
+live, inside the box, without a restart:
+
+```bash
+mise up            # everything, or e.g. `mise up claude`
+```
 
 ## Docs
 

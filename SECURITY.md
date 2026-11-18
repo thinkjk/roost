@@ -6,6 +6,10 @@ roost runs coding agents with broad permissions inside one container. The
 container is the boundary:
 
 - no sudo, no Docker socket, no host mounts besides the home and SSH volumes
+- minimal capabilities and `no-new-privileges`; root never runs anything from
+  the agent's home
+- the mise binary in the image is version-pinned and checksum-verified, and CI
+  actions are pinned to commits
 - one sshd, pubkey-only, single user `agent`, no root login, no remote
   forwarding (local forwarding is on: Heeler reaches herdr's socket through it)
 - allowed keys and the host key are root-owned, outside the agent's home

@@ -8,7 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # first start (entrypoint.sh). gosu lets the entrypoint drop root->agent after
 # remapping the uid/gid to PUID/PGID.
 # End users add their own apt packages via Dockerfile.user, not here.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
       ca-certificates curl git tmux ripgrep fd-find jq btop build-essential \
       python3-venv unzip vim less openssh-client openssh-server tzdata gosu rsync \
     && ln -s /usr/bin/fdfind /usr/local/bin/fd \

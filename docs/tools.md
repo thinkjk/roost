@@ -44,7 +44,7 @@ mise up                        # update everything
 Pulling a new image does not touch these: tools in the home volume update
 only through mise. Running `mise up` is live; open sessions keep the old
 version until restarted. `AUTO_UPDATE=1` in `.env` runs it on every
-container start (and switches off Claude Code's own updater, so the two
+container start and daily (and switches off Claude Code's own updater, so the two
 don't fight). mise waits 24 hours after a release before installing it.
 
 In the box, the `roost-setup` skill knows these tiers: ask your agent to

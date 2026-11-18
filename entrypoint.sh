@@ -15,8 +15,8 @@ CURSOR="${CURSOR:-0}"
 TRUST_PROJECTS="${TRUST_PROJECTS:-1}"
 GH_TOKEN="${GH_TOKEN:-}"
 # AUTO_UPDATE=1: `mise up` every installed tool (Claude Code, Codex, herdr,
-# ...) on each start, and leave updates to mise alone (Claude Code's own
-# auto-updater is switched off). Updating live, without a restart: `mise up`.
+# ...) on each start and then daily, and leave updates to mise alone (Claude
+# Code's own auto-updater is switched off). By hand, any time: `mise up`.
 AUTO_UPDATE="${AUTO_UPDATE:-0}"
 # Heeler QR pairing (roost-pair). Off by default: it lets ~/.ssh/authorized_keys
 # grant logins, which every agent in the box can write.
@@ -107,6 +107,9 @@ bootstrap() {
   if [ "$AUTO_UPDATE" = "1" ]; then
     run "$MISE" up && echo "roost: tools updated (AUTO_UPDATE)" \
       || echo "WARN: mise up failed"
+    # mise up keeps old versions (running sessions may still use them); at
+    # start nothing runs yet, so drop the ones no config wants.
+    run "$MISE" prune -y >/dev/null 2>&1 || true
     # Two updaters for one binary fight; mise owns it here.
     run bash -c 's="$HOME/.claude/settings.json"; [ -s "$s" ] || echo "{}" > "$s"
       jq ".env.DISABLE_AUTOUPDATER = \"1\"" "$s" > "$s.tmp" && mv "$s.tmp" "$s"' \
@@ -133,12 +136,35 @@ bootstrap() {
   run bash -c "jq -S '.mcpServers.playwright = {\"type\":\"stdio\",\"command\":\"playwright-mcp\",\"args\":[\"--headless\",\"--browser\",\"chromium\",\"--no-sandbox\"],\"env\":{}}' '$f' > '$f.tmp' && mv '$f.tmp' '$f'" \
     || echo "WARN: playwright MCP config failed"
 
+  # Claude via a gateway (LiteLLM, ...): ssh/herdr sessions do not see the
+  # container env, so the values go into Claude's own settings. Only the
+  # variables that are set are written; clearing one in the template does
+  # not remove it from ~/.claude/settings.json.
+  gw="$(jq -n '$ENV | {ANTHROPIC_BASE_URL, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_DEFAULT_OPUS_MODEL,
+                       ANTHROPIC_DEFAULT_SONNET_MODEL, ANTHROPIC_DEFAULT_HAIKU_MODEL}
+                | with_entries(select(.value != null and .value != ""))')"
+  if [ "$gw" != "{}" ]; then
+    run env GW="$gw" bash -c 's="$HOME/.claude/settings.json"; [ -s "$s" ] || echo "{}" > "$s"
+      jq --argjson gw "$GW" ".env += \$gw" "$s" > "$s.tmp" && mv "$s.tmp" "$s" && chmod 600 "$s"' \
+      && echo "roost: Claude gateway set ($(jq -r '.ANTHROPIC_BASE_URL // "model names only"' <<<"$gw"))" \
+      || echo "WARN: could not write the Claude gateway settings"
+  fi
+
   # Pre-accept Claude's trust dialog for ~/projects/*; later clones: roost-trust.
   if [ "$TRUST_PROJECTS" = "1" ]; then
     run roost-trust || echo "WARN: trust pre-accept failed"
   fi
 
   echo "roost bootstrap done"
+
+  # AUTO_UPDATE also checks daily while the box runs, so tools stay current
+  # without a restart. Open sessions keep their version; new ones get the new.
+  if [ "$AUTO_UPDATE" = "1" ]; then
+    while sleep 86400; do
+      run "$MISE" up >/dev/null 2>&1 && echo "roost: tools updated (daily AUTO_UPDATE)" \
+        || echo "WARN: daily mise up failed"
+    done
+  fi
 }
 
 bootstrap &

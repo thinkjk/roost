@@ -13,6 +13,25 @@ To build by hand instead: `docker build -t ghcr.io/<you>/roost:latest .`
 The image is built for `linux/amd64` and `linux/arm64` (Raspberry Pi 4/5, ARM
 NAS, Apple-silicon VMs); arm64 runs under QEMU in CI, so a build takes longer.
 
+## Staying current
+
+Nothing in the image needs hand-bumping:
+
+| What | How it updates |
+|---|---|
+| Ubuntu base + apt packages | weekly image build (Mon 04:00 UTC), uncached, with `apt-get upgrade` |
+| mise binary | `update-mise.yml` (Mon 03:00 UTC) bumps the pin to the newest release at least 3 days old, after verifying its minisign signature against `.github/scripts/mise.pub` |
+| CI actions | Dependabot PRs (commit-pinned, weekly) |
+| Claude Code, Codex, herdr, ... | not in the image: `AUTO_UPDATE=1` runs `mise up` in the box at start and daily |
+
+Each published image is a new digest, so Watchtower (or similar) recreates
+the container about weekly, which stops running agent sessions. Schedule it
+for a quiet hour.
+
+If mise ever rotates its signing key, `update-mise` fails loudly; replace
+`.github/scripts/mise.pub` with the new `minisign.pub` from github.com/jdx/mise
+after checking the change upstream.
+
 ## Files
 
 ```

@@ -7,7 +7,7 @@ on:
   pull_request:
   workflow_dispatch:
   schedule:
-    - cron: '0 4 * * 1'   # weekly: picks up a fresh ubuntu:24.04 base
+    - cron: '0 4 * * 1'   # weekly, uncached: fresh base, apt upgrades, mise bump from 03:00
 
 permissions:
   contents: read
@@ -42,5 +42,8 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Scheduled builds skip the cache so apt really fetches today's
+          # packages; other builds reuse layers.
+          no-cache: ${{ github.event_name == 'schedule' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -1,0 +1,37 @@
+name: update-mise
+
+# Weekly, an hour before the scheduled image build: move the pinned mise in
+# the Dockerfile to the newest release that is at least 3 days old and whose
+# SHASUMS256.txt carries a valid minisign signature from mise's key
+# (.github/scripts/mise.pub). Commits straight to main; the 04:00 image
+# build (or the dispatch below, for manual runs) publishes it.
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq minisign
+      - id: bump
+        run: .github/scripts/bump-mise.sh >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - if: steps.bump.outputs.changed == 'true'
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -am "Dockerfile: mise ${{ steps.bump.outputs.version }}"
+          git push
+      # Pushes made with the workflow token start no workflows; a dispatch does.
+      - if: steps.bump.outputs.changed == 'true' && github.event_name == 'workflow_dispatch'
+        run: gh workflow run image.yml --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}

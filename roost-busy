@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# roost-busy — is it safe to recreate the box right now?
+#
+# Watchtower pre-update hook (label set in the Dockerfile): exit 75 tells
+# Watchtower to skip this container and try again at its next check; 0 lets
+# the update go ahead. Any other exit aborts the update, so if this script
+# itself breaks, the box stays up rather than being rolled mid-task.
+#
+# Busy means: a coding agent is running (even idle at its prompt; a recreate
+# would kill it), or someone ran `touch ~/.roost-hold` to hold updates by hand
+# (`rm ~/.roost-hold` to release). Run it yourself to see what would block.
+set -u
+
+# Harness commands. Matched on the program name (argv[0]) and, only when that
+# is an interpreter (node, bun, python, ...), the script name (argv[1]); so
+# `less claude` or `vim claude.md` is not a hit.
+AGENTS="claude codex opencode cursor-agent gemini copilot aider amp qwen crush goose grok pi omp"
+HOLD=/home/agent/.roost-hold
+
+busy=()
+[ -e "$HOLD" ] && busy+=("hold file $HOLD")
+
+for d in /proc/[0-9]*; do
+  [ "${d#/proc/}" = "$$" ] && continue
+  # argv is NUL-separated; read the first two entries.
+  { IFS= read -r -d '' a0 && IFS= read -r -d '' a1 || a1=""; } < "$d/cmdline" 2>/dev/null || continue
+  args=("$a0")
+  case "${a0##*/}" in node|bun|deno|python|python3|bash|sh) args+=("$a1");; esac
+  for arg in "${args[@]}"; do
+    name="${arg##*/}"
+    for a in $AGENTS; do
+      if [ "$name" = "$a" ]; then busy+=("$a (pid ${d#/proc/})"); break 2; fi
+    done
+  done
+done
+
+if [ "${#busy[@]}" -gt 0 ]; then
+  echo "roost busy, update deferred: ${busy[*]}"
+  exit 75
+fi
+echo "roost idle, ok to update"
+exit 0

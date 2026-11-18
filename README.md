@@ -113,6 +113,10 @@ mise up            # everything, or e.g. `mise up claude`
 Or set `AUTO_UPDATE=1` in `.env` to run that on every container start and
 daily while it runs.
 
+Using Watchtower? Give it `WATCHTOWER_LIFECYCLE_HOOKS=true`: roost then
+defers each update until no coding agent is running (`roost-busy` in the
+box shows what would block it; `touch ~/.roost-hold` holds updates by hand).
+
 ## Docs
 
 - [reference](docs/reference.md): migrate, `~/projects` and trust, herdr

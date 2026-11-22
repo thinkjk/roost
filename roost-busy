@@ -21,8 +21,9 @@ HOLD=/home/agent/.roost-hold
 HC=/home/agent/.local/bin/hc
 
 # claude_idle /proc/PID: true only when herdr-core reports that process's
-# terminal as idle. Anything unclear (not in a herdr terminal, hc missing or
-# failing, another status) counts as busy.
+# terminal as idle or done (turn finished, waiting at the prompt). Anything
+# unclear (not in a herdr terminal, hc missing or failing, another status)
+# counts as busy.
 claude_idle() {
   local t state
   t="$(tr '\0' '\n' < "$1/environ" 2>/dev/null | sed -n 's/^HC_TERMINAL_ID=//p' | head -n1)"
@@ -32,7 +33,7 @@ claude_idle() {
   else
     state="$("$HC" get "$t" --json 2>/dev/null | jq -r '.status.state // empty' 2>/dev/null)"
   fi
-  [ "$state" = idle ]
+  [ "$state" = idle ] || [ "$state" = done ]
 }
 
 busy=()

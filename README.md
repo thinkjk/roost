@@ -119,8 +119,9 @@ box shows what would block it; `touch ~/.roost-hold` holds updates by hand).
 
 **Claude starts by itself:** a herdr terminal that opens in a git repo under
 `~/projects` runs `AUTO_AGENT` (default `claude
---dangerously-skip-permissions`), and after a restart it continues the same
-conversation with `--continue`. Set `AUTO_AGENT` empty to switch it off, or
+--dangerously-skip-permissions`) after a 3s countdown (press any key for a
+plain shell; cd into another repo starts it there), and after a restart it
+continues the same conversation with `--continue`. Set `AUTO_AGENT` empty to switch it off, or
 `touch .no-auto-agent` in a repo to skip that one.
 
 ## Docs

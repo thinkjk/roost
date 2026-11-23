@@ -6,8 +6,11 @@
   `~/projects` starts the agent (default `claude
   --dangerously-skip-permissions`; empty = off; `.no-auto-agent` skips a
   repo). Terminals herdr-core brings back after a restart continue their
-  conversation (`--continue` on the same command).
-- `roost-busy` no longer defers updates for a Claude that herdr reports idle;
+  conversation (`--continue` on the same command). A new terminal counts
+  down 3s first (any key: plain shell, e.g. to cd elsewhere, since new herdr
+  spaces open in the current folder); cd into another repo starts it there.
+- `roost-busy` no longer defers updates for a Claude that herdr reports idle
+  or done (finished its turn, waiting at the prompt);
   `AUTO_AGENT` resumes it after the recreate. Working Claudes and other
   agents still defer.
 - Heeler QR pairing: `HEELER_PAIRING=1` plus `HEELER_ADDRESSES`, then

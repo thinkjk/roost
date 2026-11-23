@@ -23,9 +23,9 @@ RUN apt-get update && apt-get upgrade -y \
 # from SHASUMS256.txt of https://github.com/jdx/mise/releases.
 # TARGETARCH is set by buildx (amd64 / arm64); mise names them x64 / arm64.
 ARG TARGETARCH
-ARG MISE_VERSION=2026.11.9
-ARG MISE_SHA256_X64=f13f3e5ec88807e0161669b3aa07a91d84478cdf1e95b5b92b63f85a25d42395
-ARG MISE_SHA256_ARM64=b8dd05af6447cee933928664982a8cb2fa646e6951cfc8539db23ce2554a7b04
+ARG MISE_VERSION=2026.11.10
+ARG MISE_SHA256_X64=b603a4f48563fc379a794d9ea2cf9f709ed276c9141068604cb0c59fa3e674a9
+ARG MISE_SHA256_ARM64=86ef275d541c5243cd20b1c0fcd16810e5f3601113d8db09278d0608617a3833
 RUN if [ "$TARGETARCH" = arm64 ]; then arch=arm64 sum="$MISE_SHA256_ARM64"; \
     else arch=x64 sum="$MISE_SHA256_X64"; fi \
     && curl -fsSL "https://github.com/jdx/mise/releases/download/v$MISE_VERSION/mise-v$MISE_VERSION-linux-$arch" \
